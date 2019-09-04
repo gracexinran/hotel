@@ -2,8 +2,8 @@ require "date"
 
 module Hotel
   class Reservation
-    attr_reader :id, :room, :room_id, :start_date, :end_date
-    attr_accessor :cost
+    attr_reader :id, :room_id, :start_date, :end_date
+    attr_accessor :cost, :room
     ROOM_RATE = 200
     
     def initialize(id:, room: nil, room_id: nil, start_date:, end_date:, cost: nil)
@@ -32,6 +32,10 @@ module Hotel
         
     end
 
+    def connect_reservation(room)
+      @room = room
+      room.add_reservation(self)
+    end
 
   end
 end

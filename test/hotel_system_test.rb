@@ -50,15 +50,15 @@ describe "HotelSystem class" do
     
   end
   
-  describe "list reservations" do 
+  describe "reservations_by_date" do 
     it "raises ArgumentError if the date provided is not Date class" do 
       date = '2019, 9, 9'
-      expect{@hotel_system.list_reservations(date)}.must_raise ArgumentError
+      expect{@hotel_system.reservations_by_date(date)}.must_raise ArgumentError
     end
     
     it "lists all the reservations for a certain date" do 
       date = Date.new(2019,9,9)
-      list = @hotel_system.list_reservations(date)
+      list = @hotel_system.reservations_by_date(date)
       expect(list).must_be_instance_of Array
       
       reservation_num = 0
@@ -76,7 +76,7 @@ describe "HotelSystem class" do
     
     it "returns nil if no reservation is found" do 
       date = Date.new(2019,9,20)
-      expect(@hotel_system.list_reservations(date)).must_be_nil
+      expect(@hotel_system.reservations_by_date(date)).must_be_nil
     end
     
   end
