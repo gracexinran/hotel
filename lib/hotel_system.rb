@@ -17,16 +17,21 @@ module Hotel
       @reservations = []
     end
     
-    def make_reservation(start_date, end_date)
+    def make_reservation(start_date, end_date, room_num = 1, room_rate = 200)
       reservation_id = @reservations.length + 1
-      rooms = available_rooms(start_date, end_date)
-      
-      raise ArgumentError.new("No available room! All rooms are booked!") if rooms.empty?
-      room = rooms.first
-      
-      reservation = Hotel::Reservation.new(id: reservation_id, room: room, room_id: nil, start_date: start_date, end_date: end_date, cost: nil)
-      @reservations << reservation
-      reservation.connect_reservation(room)
+      if room_rate == 200 && room_num == 1
+        room = available_room(start_date, end_date)
+        reservation = Hotel::Reservation.new(id: reservation_id, room: room, start_date: start_date, end_date: end_date)
+        @reservations << reservation
+        reservation.connect_reservation(room)
+      else
+        block = available_block(start_date, end_date, room_num, room_rate)
+        reservation = Hotel::Reservation.new(id: reservation_id, block: block, start_date: start_date, end_date: end_date)
+        @reservations << reservation
+        block.each do |room|
+          reservation.connect_reservation(room)
+        end
+      end
       return reservation
     end
     
@@ -46,16 +51,24 @@ module Hotel
       return list
     end
     
-    def available_rooms(start_date, end_date)
-      available_rooms = []
-      
+    def available_room(start_date, end_date)
+      room = @rooms.find {|room| room.status(start_date, end_date)}
+      raise ArgumentError.new("No available rooms!") if !room
+      return room
+    end
+    
+    def available_block(start_date, end_date, room_num, room_rate)
+      raise ArgumentError.new("Please provide a valid number of rooms you want to book!") if room_num.class != Integer || room_num > 5
+      raise ArgumentError.new("You must provide a discounted room rate to create a block!") if room_rate.class!= Integer || room_rate >= 200
+      block = []
       @rooms.each do |room|
-        next if room.status(start_date, end_date) == false
-        available_rooms << room
+        block << room if room.status(start_date, end_date)
+        break if block.length == room_num
       end
-      
-      return available_rooms
+      raise ArgumentError.new("No available block now!") if block.length < room_num
+      return block
     end
     
   end
+  
 end

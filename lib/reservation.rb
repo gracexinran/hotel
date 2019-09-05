@@ -2,19 +2,23 @@ require "date"
 
 module Hotel
   class Reservation
-    attr_reader :id, :room_id, :start_date, :end_date
-    attr_accessor :cost, :room
-    ROOM_RATE = 200
+    attr_reader :id, :room_id, :start_date, :end_date, :room_rate
+    attr_accessor :cost, :room, :block
     
-    def initialize(id:, room: nil, room_id: nil, start_date:, end_date:, cost: nil)
+    def initialize(id:, room: nil, room_id: nil, block: nil, start_date:, end_date:, room_rate: 200, cost: nil)
       validate_id(id)
       @id = id
       
       if room
         @room = room
         @room_id = room.id
+        room_num = 1
       elsif room_id
         @room_id = room_id
+        room_num = 1
+      elsif block
+        @block = block
+        room_num = block.length
       else
         raise ArgumentError.new('Room or room_id is required')
       end
@@ -23,7 +27,8 @@ module Hotel
       @start_date = start_date
       @end_date = end_date
       
-      @cost = cost || ROOM_RATE * (end_date - start_date).to_i
+      @room_rate = room_rate
+      @cost = cost || room_num * @room_rate * (end_date - start_date).to_i
       
     end
     

@@ -14,7 +14,7 @@ describe "Room" do
     end
     
     it "raises ArgumentError if room id is invalid" do
-      [nil, 0, -1].each do |id|
+      [nil, 0, -1, '1'].each do |id|
         expect{
           Hotel::Room.new(id: id)
         }.must_raise ArgumentError

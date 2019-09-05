@@ -33,7 +33,7 @@ describe "HotelSystem class" do
   end
   
   describe "make_reservation" do
-    it "adds the new created reservation to reservations and returns an instance of Reservation" do
+    it "makes a new reservation and adds the new created reservation to reservations" do
       reservations_before_request = @hotel_system.reservations.length.dup
       
       start_date = Date.today
@@ -48,6 +48,44 @@ describe "HotelSystem class" do
       expect(reservations_after_request).must_equal reservations_before_request + 1
     end
     
+    it "makes a new reservation for block if a discounted room rate is provided" do
+      reservations_before_request = @hotel_system.reservations.length.dup
+      
+      start_date = Date.today
+      end_date = start_date + 1
+      
+      reservation = @hotel_system.make_reservation(start_date, end_date, 5, 190)
+      
+      expect(reservation).must_be_instance_of Hotel::Reservation
+      
+    end
+    
+    it "raises the exception if a discounted room rate is not provided for block reservation" do
+      reservations_before_request = @hotel_system.reservations.length.dup
+      
+      start_date = Date.today
+      end_date = start_date + 1
+      
+      expect{@hotel_system.make_reservation(start_date, end_date, 5, 200)}.must_raise ArgumentError
+      
+    end
+  end
+  
+  describe "cost" do 
+    it "raises ArgumentError if the reservation provided is not Date class" do 
+      reservation_id = '2'
+      expect{@hotel_system.cost(reservation_id)}.must_raise ArgumentError
+    end
+    
+    it "must return an integer of the cost of a reservation" do 
+      reservation_id = 2 
+      
+      cost_of_reservation = @hotel_system.reservations.find {|reservation| reservation.id == reservation_id}.cost
+      
+      expect(@hotel_system.cost(reservation_id)).must_be_instance_of Integer
+      expect(@hotel_system.cost(reservation_id)).must_equal cost_of_reservation
+      
+    end
   end
   
   describe "reservations_by_date" do 
@@ -81,22 +119,48 @@ describe "HotelSystem class" do
     
   end
   
-  describe "cost" do 
-    it "raises ArgumentError if the reservation provided is not Date class" do 
-      reservation_id = '2'
-      expect{@hotel_system.cost(reservation_id)}.must_raise ArgumentError
+  describe "available_room" do
+    it "returns the first availabe room" do
+      start_date = Date.new(2019,9,9)
+      end_date = Date.new(2019,9,12)
+      room = @hotel_system.available_room(start_date, end_date)
+      
+      expect(room).must_be_instance_of Hotel::Room
+      expect(room.status(start_date, end_date)).must_equal true
+      @hotel_system.make_reservation(start_date, end_date)
+      expect(room.status(start_date, end_date)).must_equal false
+      
     end
     
-    it "must return an integer of the cost of a reservation" do 
-      reservation_id = 2 
-      
-      cost_of_reservation = @hotel_system.reservations.find {|reservation| reservation.id == reservation_id}.cost
-      p cost_of_reservation
-
-      expect(@hotel_system.cost(reservation_id)).must_be_instance_of Integer
-      expect(@hotel_system.cost(reservation_id)).must_equal cost_of_reservation
-      
+    it "must raise exception if no available room is found" do 
+      start_date = Date.new(2019,9,9)
+      end_date = Date.new(2019,9,12)
+      18.times {@hotel_system.make_reservation(start_date, end_date)}
+      expect{@hotel_system.make_reservation(start_date, end_date)}.must_raise ArgumentError
     end
+    
   end
   
+  describe "available_block" do 
+    it "returns the collection of rooms" do
+      start_date = Date.new(2019,9,9)
+      end_date = Date.new(2019,9,12)
+      block = @hotel_system.available_block(start_date, end_date, 5, 180)
+      
+      expect(block).must_be_instance_of Array
+      
+      block.each do |room|
+        expect(room).must_be_instance_of Hotel::Room
+        expect(room.status(start_date, end_date)).must_equal true
+      end
+      
+    end
+    
+    it "must raise exception if no available block is found" do 
+      start_date = Date.new(2019,9,9)
+      end_date = Date.new(2019,9,12)
+      3.times {@hotel_system.make_reservation(start_date, end_date, 5, 180)}
+      expect{@hotel_system.make_reservation(start_date, end_date, 5, 180)}.must_raise ArgumentError
+    end
+  end
 end
