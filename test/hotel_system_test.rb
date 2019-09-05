@@ -57,6 +57,9 @@ describe "HotelSystem class" do
       reservation = @hotel_system.make_reservation(start_date, end_date, 5, 190)
       
       expect(reservation).must_be_instance_of Hotel::Reservation
+      reservation.block.each do |room| 
+        expect(room.status(start_date, end_date)).must_equal false
+      end
       
     end
     
