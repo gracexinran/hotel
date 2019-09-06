@@ -6,7 +6,9 @@ require "date"
 module Hotel
   class HotelSystem
     attr_reader :rooms, :reservations
-    
+    ROOM_RATE = 200
+    ROOM_RATE_INCREASE_RATIO = 10
+
     def initialize
       @rooms = []
       20.times do |i|
@@ -14,34 +16,43 @@ module Hotel
         @rooms << room
       end
       
+      @rooms = set_room_rate
+
       @reservations = []
     end
     
-    def make_reservation(start_date, end_date, room_num = 1, room_rate = 200)
+    def set_room_rate
+      @rooms.each_with_index do |room, index|
+        room.rate = ROOM_RATE + ROOM_RATE_INCREASE_RATIO * index
+      end
+      return @rooms
+    end
+    
+    def make_reservation(start_date, end_date, room_num = 1, room_rate = nil)
       reservation_id = @reservations.length + 1
-
-      if room_rate < 200
-        block = available_block(start_date, end_date, room_num, room_rate)
-        reservation = Hotel::Reservation.new(id: reservation_id, block: block, start_date: start_date, end_date: end_date, room_rate: room_rate)
-        
-        @reservations << reservation
-        reservation.connect_reservation(block)
-
-      else 
+      
+      if room_rate.nil?
         available_rooms = available_room(start_date, end_date)
         
         raise ArgumentError.new("No available rooms!") if available_rooms.empty? || available_rooms.length < room_num
         rooms = available_rooms[0..(room_num - 1)]
         
         raise ArgumentError.new("Please provide a valid number of rooms you want to book!") if room_num.nil? || room_num.class != Integer || room_num < 1
-
+        
         reservation = Hotel::Reservation.new(id: reservation_id, rooms: rooms, start_date: start_date, end_date: end_date)
         
         @reservations << reservation
         reservation.connect_reservation(rooms)
-  
+        
+      elsif room_rate < ROOM_RATE
+        block = available_block(start_date, end_date, room_num, room_rate)
+        reservation = Hotel::Reservation.new(id: reservation_id, block: block, start_date: start_date, end_date: end_date, room_rate: room_rate)
+        
+        @reservations << reservation
+        reservation.connect_reservation(block)
+        
       end
-
+      
       return reservation
       
     end
@@ -90,7 +101,7 @@ module Hotel
       raise ArgumentError.new("No available block now!") if block.length < room_num
       
       return block
-
+      
     end
     
   end

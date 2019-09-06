@@ -2,10 +2,10 @@ require "date"
 
 module Hotel
   class Reservation
-    attr_reader :id, :room_ids, :start_date, :end_date, :room_rate, :block, :cost
+    attr_reader :id, :room_ids, :start_date, :end_date, :block, :cost, :room_rate
     attr_accessor :rooms
     
-    def initialize(id:, rooms: nil, room_ids: nil, block: nil, start_date:, end_date:, room_rate: 200, cost: nil)
+    def initialize(id:, rooms: nil, room_ids: nil, block: nil, start_date:, end_date:, room_rate: nil, cost: nil)
       
       validate_num(id)
       @id = id
@@ -28,10 +28,21 @@ module Hotel
       @start_date = start_date
       @end_date = end_date
       
-      validate_num(room_rate)
-      @room_rate = room_rate
-      
-      @cost = cost || room_num * @room_rate * range
+      if cost
+        validate_num(cost)
+        @cost = cost
+      elsif room_rate
+        validate_num(room_rate)
+        @room_rate = room_rate
+        @cost = @room_rate * range * room_num
+      else
+        cost_per_night = 0
+        @room_ids.each do |room_id|
+          room = find_room(room_id)
+          cost_per_night += room.rate 
+        end
+        @cost = cost_per_night * range
+      end
       
     end
     
@@ -44,6 +55,11 @@ module Hotel
       
       return (end_date - start_date).to_i
       
+    end
+    
+    def find_room(room_id)
+      room = Hotel::HotelSystem.new.rooms.find {|room| room.id == room_id}
+      return room
     end
     
     def connect_reservation(rooms)

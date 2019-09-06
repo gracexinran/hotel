@@ -6,9 +6,9 @@ ROOM_RATE = 200
 describe "HotelSystem class" do
   before do 
     @hotel_system = Hotel::HotelSystem.new
-    reservation_1 = @hotel_system.make_reservation(Date.new(2019,9,9), Date.new(2019,9,12))
-    reservation_2 = @hotel_system.make_reservation(Date.new(2019,9,9), Date.new(2019,9,10))
-    reservation_3 = @hotel_system.make_reservation(Date.new(2019,9,15), Date.new(2019,9,16))
+    reservation_1 = @hotel_system.make_reservation(Date.today, Date.today + 3)
+    reservation_2 = @hotel_system.make_reservation(Date.today, Date.today + 3)
+    reservation_3 = @hotel_system.make_reservation(Date.today + 5, Date.today + 6)
   end
   
   describe "initialize" do
@@ -80,14 +80,19 @@ describe "HotelSystem class" do
       end_date = start_date + 1
       range = (end_date - start_date).to_i
       
-      reservation = @hotel_system.make_reservation(start_date, end_date, 5, 200)
+      reservation = @hotel_system.make_reservation(start_date, end_date, 5)
       
       expect(reservation).must_be_instance_of Hotel::Reservation
       
-      cost_per_night_per_room = reservation.cost / (range * reservation.rooms.length)
+      cost_per_night = reservation.cost / range
+      
+      rooms_rate_sum = 0
+      reservation.rooms.each do |room|
+        rooms_rate_sum += room.rate
+      end
       
       expect(reservation).must_be_instance_of Hotel::Reservation
-      expect(cost_per_night_per_room).must_equal ROOM_RATE
+      expect(cost_per_night).must_equal rooms_rate_sum
       
     end
   end
@@ -111,12 +116,12 @@ describe "HotelSystem class" do
   
   describe "reservations_by_date" do 
     it "raises ArgumentError if the date provided is not Date class" do 
-      date = '2019, 9, 9'
+      date = "#{Date.today}"
       expect{@hotel_system.reservations_by_date(date)}.must_raise ArgumentError
     end
     
     it "lists all the reservations for a certain date" do 
-      date = Date.new(2019,9,9)
+      date = Date.today
       list = @hotel_system.reservations_by_date(date)
       expect(list).must_be_instance_of Array
       
@@ -134,7 +139,7 @@ describe "HotelSystem class" do
     end
     
     it "returns nil if no reservation is found" do 
-      date = Date.new(2019,9,20)
+      date = Date.today + 20
       expect(@hotel_system.reservations_by_date(date)).must_be_nil
     end
     
@@ -142,8 +147,8 @@ describe "HotelSystem class" do
   
   describe "available_room" do
     it "returns the first availabe room" do
-      start_date = Date.new(2019,9,9)
-      end_date = Date.new(2019,9,12)
+      start_date = Date.today
+      end_date = Date.today + 3
       
       room_num_for_reservation = 1
       rooms = @hotel_system.available_room(start_date, end_date).slice(0, room_num_for_reservation)
@@ -159,8 +164,8 @@ describe "HotelSystem class" do
     end
     
     it "must raise exception if no available room is found" do 
-      start_date = Date.new(2019,9,9)
-      end_date = Date.new(2019,9,12)
+      start_date = Date.today
+      end_date = Date.today + 3
       18.times {@hotel_system.make_reservation(start_date, end_date)}
       expect{@hotel_system.make_reservation(start_date, end_date)}.must_raise ArgumentError
     end
@@ -169,8 +174,8 @@ describe "HotelSystem class" do
   
   describe "available_block" do 
     it "returns the collection of rooms" do
-      start_date = Date.new(2019,9,9)
-      end_date = Date.new(2019,9,12)
+      start_date = Date.today
+      end_date = Date.today + 3
       block = @hotel_system.available_block(start_date, end_date, 5, 180)
       
       expect(block).must_be_instance_of Array
@@ -183,8 +188,8 @@ describe "HotelSystem class" do
     end
     
     it "raises exception if no available block is found" do 
-      start_date = Date.new(2019,9,9)
-      end_date = Date.new(2019,9,12)
+      start_date = Date.today
+      end_date = Date.today + 3
       
       3.times {@hotel_system.make_reservation(start_date, end_date, 5, 180)}
       

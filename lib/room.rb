@@ -1,11 +1,15 @@
 module Hotel
   class Room
     attr_reader :id, :reservations
+    attr_accessor :rate
     
-    def initialize(id:, reservations: nil)
+    ROOM_RATE = 200
+    def initialize(id:, reservations: nil, rate: ROOM_RATE)
       validate_num(id)
       @id = id
       @reservations = reservations || []
+      validate_num(rate)
+      @rate = rate
     end
 
     def validate_num(num)

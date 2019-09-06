@@ -38,13 +38,16 @@ describe "Reservation" do
     end
     
     it "assigns a cost for each reservation" do 
-      range = (block_reservation.end_date - block_reservation.start_date).to_i
-      cost_room = range * reservation.room_rate * reservation.room_ids.length
-      
-      expect(reservation.cost).must_equal cost_room
+      range = reservation.range(reservation.start_date, reservation.end_date)
+      reservation_cost = 0
+      reservation.room_ids.each do |room_id|
+        room = reservation.find_room(room_id)
+        reservation_cost += room.rate * range
+      end
+      expect(reservation.cost).must_equal reservation_cost
       
       room_num = block_reservation.block.length
-      range = (block_reservation.end_date - block_reservation.start_date).to_i
+      range = block_reservation.range(block_reservation.start_date, block_reservation.end_date)
       cost_block = range * block_reservation.room_rate * room_num
       
       expect(block_reservation.cost).must_equal cost_block
@@ -81,12 +84,24 @@ describe "Reservation" do
     
   end
   
+  describe "find_room" do
+    it "find the room with room_id" do 
+      reservation.room_ids.each do |room_id|
+        room_find = reservation.find_room(room_id)
+        
+        expect(room_find).must_be_instance_of Hotel::Room
+        expect(room_find.id).must_equal room_id
+        
+      end
+    end
+  end
+  
   describe "connect_reservation" do 
     it "adds reservation to the reservation list of this room" do
       rooms = reservation.room_ids.map {
         |room_id| Hotel::HotelSystem.new.rooms.find {|room| room.id == room_id}
       }
-
+      
       rooms_reservations_before_connect = rooms.map {
         |room| room.reservations.dup 
       }
