@@ -1,0 +1,4 @@
+1. At the beginning, I created the room and room id attributes for reservation and forgot that a reservation can have muliple rooms. Then it took me a while to change the data type of rooms and room_ids to array. So think carefully about the data type for each attribute, which can decrease the changes in the future.
+2. More readable variable names.
+3. More reliable test cases. Not a lot of edge cases were tested.
+4. Less repeat of code. More DRY. For example, repeating several times of validating the integers.
