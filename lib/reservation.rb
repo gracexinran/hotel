@@ -22,6 +22,7 @@ module Hotel
         room_num = @room_ids.length
       elsif block
         @block = block
+        @room_ids = @block.map {|room| room.id}
         room_num = @block.length
       else
         raise ArgumentError.new('Room or block info is required!')
