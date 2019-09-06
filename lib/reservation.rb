@@ -1,9 +1,12 @@
 require "date"
+require "csv"
 
 module Hotel
   class Reservation
     attr_reader :id, :room_ids, :start_date, :end_date, :block, :cost, :room_rate
     attr_accessor :rooms
+    
+    CSV_RESERVATION = 'reservation.csv'
     
     def initialize(id:, rooms: nil, room_ids: nil, block: nil, start_date:, end_date:, room_rate: nil, cost: nil)
       
@@ -42,6 +45,13 @@ module Hotel
           cost_per_night += room.rate 
         end
         @cost = cost_per_night * range
+      end
+      
+      CSV.open(CSV_RESERVATION, 'a') do |csv|
+        csv_array = CSV.read(CSV_RESERVATION)
+        new_csv = ["#{@id}", "#{rooms}", "#{@room_ids}", "#{block}", "#{@start_date}", "#{@end_date}", "#{room_rate}", "#{@cost}"]
+        
+        csv << new_csv
       end
       
     end

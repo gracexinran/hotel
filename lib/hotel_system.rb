@@ -2,30 +2,30 @@ require_relative "room"
 require_relative "reservation"
 
 require "date"
+require 'csv'
 
 module Hotel
   class HotelSystem
     attr_reader :rooms, :reservations
+    
     ROOM_RATE = 200
     ROOM_RATE_INCREASE_RATIO = 10
-
+    
     def initialize
       @rooms = []
       20.times do |i|
-        room = Hotel::Room.new(id: i + 1)
+        room_id = i + 1
+        room_rate = set_room_rate(room_id)
+        room = Hotel::Room.new(id: room_id, rate: room_rate)
         @rooms << room
       end
       
-      @rooms = set_room_rate
-
       @reservations = []
     end
     
-    def set_room_rate
-      @rooms.each_with_index do |room, index|
-        room.rate = ROOM_RATE + ROOM_RATE_INCREASE_RATIO * index
-      end
-      return @rooms
+    def set_room_rate(room_id)
+      room_rate = ROOM_RATE + ROOM_RATE_INCREASE_RATIO * room_id
+      return room_rate
     end
     
     def make_reservation(start_date, end_date, room_num = 1, room_rate = nil)
