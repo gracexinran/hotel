@@ -50,9 +50,15 @@ module Hotel
       
       CSV.open(CSV_RESERVATION, 'a') do |csv|
         csv_array = CSV.read(CSV_RESERVATION)
-        new_csv = ["#{@id}", "#{rooms}", "#{@room_ids}", "#{block}", "#{@start_date}", "#{@end_date}", "#{room_rate}", "#{@cost}"]
+        if block.nil?
+          block_reservation = 'No'
+        else
+          block_reservation = 'Yes'
+        end
+
+        new_csv = ["#{@id}", "#{@room_ids}", "#{block_reservation}", "#{@start_date}", "#{@end_date}", "#{room_rate}", "#{@cost}"]
         
-        csv << new_csv
+        csv << new_csv if !csv_array.include?(new_csv)
       end
       
     end
