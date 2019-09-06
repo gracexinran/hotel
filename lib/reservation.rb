@@ -2,45 +2,56 @@ require "date"
 
 module Hotel
   class Reservation
-    attr_reader :id, :room_id, :start_date, :end_date, :room_rate
-    attr_accessor :cost, :room, :block
+    attr_reader :id, :room_ids, :start_date, :end_date, :room_rate, :block, :cost
+    attr_accessor :rooms
     
-    def initialize(id:, room: nil, room_id: nil, block: nil, start_date:, end_date:, room_rate: 200, cost: nil)
-      validate_id(id)
+    def initialize(id:, rooms: nil, room_ids: nil, block: nil, start_date:, end_date:, room_rate: 200, cost: nil)
+      
+      validate_num(id)
       @id = id
       
-      if room
-        @room = room
-        @room_id = room.id
-        room_num = 1
-      elsif room_id
-        @room_id = room_id
-        room_num = 1
+      if rooms
+        @rooms = rooms
+        @room_ids = @rooms.map {|room| room.id}
+        room_num = @rooms.length
+      elsif room_ids
+        @room_ids = room_ids
+        room_num = @room_ids.length
       elsif block
         @block = block
-        room_num = block.length
+        room_num = @block.length
       else
-        raise ArgumentError.new('Room or room_id is required')
+        raise ArgumentError.new('Room or block info is required!')
       end
       
-      raise ArgumentError.new("Date range is invalid") if start_date.nil? || end_date.nil? || start_date >= end_date || start_date < Date.today
+      range = range(start_date, end_date)
       @start_date = start_date
       @end_date = end_date
       
+      validate_num(room_rate)
       @room_rate = room_rate
-      @cost = cost || room_num * @room_rate * (end_date - start_date).to_i
+      
+      @cost = cost || room_num * @room_rate * range
       
     end
     
-    def validate_id(id)
-      raise ArgumentError.new('ID cannot be blank and must be an integer greater than zero.') if id.class != Integer || id.nil? || id <= 0
-        
+    def validate_num(num)
+      raise ArgumentError.new('It cannot be blank and must be an integer greater than zero.') if num.nil? || num.class != Integer || num <= 0
     end
-
-    def connect_reservation(room)
-      @room = room
-      room.add_reservation(self)
+    
+    def range(start_date, end_date)
+      raise ArgumentError.new("Date range is invalid!") if start_date.nil? || end_date.nil? || start_date.class != Date || end_date.class != Date || start_date >= end_date || start_date < Date.today
+      
+      return (end_date - start_date).to_i
+      
     end
-
+    
+    def connect_reservation(rooms)
+      @rooms = rooms
+      rooms.each do |room|
+        room.add_reservation(self)
+      end
+    end
+    
   end
 end

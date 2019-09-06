@@ -3,14 +3,13 @@ module Hotel
     attr_reader :id, :reservations
     
     def initialize(id:, reservations: nil)
-      validate_id(id)
+      validate_num(id)
       @id = id
       @reservations = reservations || []
     end
-    
-    def validate_id(id)
-      raise ArgumentError.new('ID cannot be blank and must be an integer greater than zero.') if id.class != Integer || id.nil? || id <= 0
-      
+
+    def validate_num(num)
+      raise ArgumentError.new('It cannot be blank and must be an integer greater than zero.') if num.nil? || num.class != Integer || num <= 0
     end
     
     def add_reservation(reservation)

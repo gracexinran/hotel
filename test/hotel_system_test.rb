@@ -1,9 +1,11 @@
 require_relative "test_helper"
 
+ROOM_NUM = 20
+ROOM_RATE = 200
+
 describe "HotelSystem class" do
   before do 
     @hotel_system = Hotel::HotelSystem.new
-    
     reservation_1 = @hotel_system.make_reservation(Date.new(2019,9,9), Date.new(2019,9,12))
     reservation_2 = @hotel_system.make_reservation(Date.new(2019,9,9), Date.new(2019,9,10))
     reservation_3 = @hotel_system.make_reservation(Date.new(2019,9,15), Date.new(2019,9,16))
@@ -28,11 +30,17 @@ describe "HotelSystem class" do
     end
     
     it "contains 20 rooms in total" do 
-      expect(@hotel_system.rooms.length).must_equal 20
+      expect(@hotel_system.rooms.length).must_equal ROOM_NUM
     end
   end
   
   describe "make_reservation" do
+    let(:block_reservation){
+      start_date = Date.today
+      end_date = start_date + 1
+      @hotel_system.make_reservation(start_date, end_date, 5, 190)
+    }
+    
     it "makes a new reservation and adds the new created reservation to reservations" do
       reservations_before_request = @hotel_system.reservations.length.dup
       
@@ -49,27 +57,37 @@ describe "HotelSystem class" do
     end
     
     it "makes a new reservation for block if a discounted room rate is provided" do
-      reservations_before_request = @hotel_system.reservations.length.dup
       
-      start_date = Date.today
-      end_date = start_date + 1
+      range = (block_reservation.end_date - block_reservation.start_date).to_i
       
-      reservation = @hotel_system.make_reservation(start_date, end_date, 5, 190)
+      cost_per_night_per_room = block_reservation.cost / (range * block_reservation.block.length)
       
-      expect(reservation).must_be_instance_of Hotel::Reservation
-      reservation.block.each do |room| 
-        expect(room.status(start_date, end_date)).must_equal false
+      expect(block_reservation).must_be_instance_of Hotel::Reservation
+      
+      expect(cost_per_night_per_room).must_be :<, ROOM_RATE
+    end
+    
+    it "changes the status of all rooms in the block to unavailable after making the block reservation" do
+      
+      block_reservation.block.each do |room| 
+        expect(room.status(block_reservation.start_date, block_reservation.end_date)).must_equal false
       end
       
     end
     
-    it "raises the exception if a discounted room rate is not provided for block reservation" do
-      reservations_before_request = @hotel_system.reservations.length.dup
-      
+    it "makes a normal reservation for multiple rooms if a discounted room rate is not provided for block reservation" do
       start_date = Date.today
       end_date = start_date + 1
+      range = (end_date - start_date).to_i
       
-      expect{@hotel_system.make_reservation(start_date, end_date, 5, 200)}.must_raise ArgumentError
+      reservation = @hotel_system.make_reservation(start_date, end_date, 5, 200)
+      
+      expect(reservation).must_be_instance_of Hotel::Reservation
+      
+      cost_per_night_per_room = reservation.cost / (range * reservation.rooms.length)
+      
+      expect(reservation).must_be_instance_of Hotel::Reservation
+      expect(cost_per_night_per_room).must_equal ROOM_RATE
       
     end
   end
@@ -126,12 +144,17 @@ describe "HotelSystem class" do
     it "returns the first availabe room" do
       start_date = Date.new(2019,9,9)
       end_date = Date.new(2019,9,12)
-      room = @hotel_system.available_room(start_date, end_date)
       
-      expect(room).must_be_instance_of Hotel::Room
-      expect(room.status(start_date, end_date)).must_equal true
-      @hotel_system.make_reservation(start_date, end_date)
-      expect(room.status(start_date, end_date)).must_equal false
+      room_num_for_reservation = 1
+      rooms = @hotel_system.available_room(start_date, end_date).slice(0, room_num_for_reservation)
+      
+      expect(rooms).must_be_instance_of Array
+      
+      rooms.each {|room| expect(room.status(start_date, end_date)).must_equal true}
+      
+      reservation = @hotel_system.make_reservation(start_date, end_date)
+      
+      reservation.rooms.each {|room| expect(room.status(start_date, end_date)).must_equal false}
       
     end
     
@@ -159,11 +182,15 @@ describe "HotelSystem class" do
       
     end
     
-    it "must raise exception if no available block is found" do 
+    it "raises exception if no available block is found" do 
       start_date = Date.new(2019,9,9)
       end_date = Date.new(2019,9,12)
+      
       3.times {@hotel_system.make_reservation(start_date, end_date, 5, 180)}
+      
       expect{@hotel_system.make_reservation(start_date, end_date, 5, 180)}.must_raise ArgumentError
+      
     end
   end
+  
 end
