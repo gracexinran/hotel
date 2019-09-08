@@ -29,30 +29,24 @@ module Hotel
     end
     
     def make_reservation(start_date, end_date, room_num = 1, room_rate = nil)
+      
       reservation_id = @reservations.length + 1
       
       if room_rate.nil?
-        available_rooms = available_room(start_date, end_date)
-        
-        raise ArgumentError.new("No available rooms!") if available_rooms.empty? || available_rooms.length < room_num
-        rooms = available_rooms[0..(room_num - 1)]
-        
-        raise ArgumentError.new("Please provide a valid number of rooms you want to book!") if room_num.nil? || room_num.class != Integer || room_num < 1
-        
+        rooms = available_room(start_date, end_date, room_num)
         reservation = Hotel::Reservation.new(id: reservation_id, rooms: rooms, start_date: start_date, end_date: end_date)
         
-        @reservations << reservation
         reservation.connect_reservation(rooms)
         
       elsif room_rate < ROOM_RATE
         block = available_block(start_date, end_date, room_num, room_rate)
         reservation = Hotel::Reservation.new(id: reservation_id, block: block, start_date: start_date, end_date: end_date, room_rate: room_rate)
         
-        @reservations << reservation
         reservation.connect_reservation(block)
         
       end
       
+      @reservations << reservation
       return reservation
       
     end
@@ -81,9 +75,19 @@ module Hotel
       
     end
     
-    def available_room(start_date, end_date)
-      rooms = @rooms.select {|room| room.status(start_date, end_date)}
+    def available_room(start_date, end_date, room_num = 1, room_rate = nil)
+      
+      raise ArgumentError.new("Please provide a valid number of rooms you want to book!") if room_num.nil? || room_num.class != Integer || room_num > 5 || room_num < 1
+      
+      rooms = []
+      @rooms.each do |room| 
+        rooms << room if room.status(start_date, end_date)
+        break if rooms.length == room_num
+      end
+      
+      raise StandardError.new("No available rooms now!") if rooms.length < room_num
       return rooms
+      
     end
     
     def available_block(start_date, end_date, room_num, room_rate)
@@ -98,7 +102,7 @@ module Hotel
         break if block.length == room_num
       end
       
-      raise ArgumentError.new("No available block now!") if block.length < room_num
+      raise StandardError.new("No available block now!") if block.length < room_num
       
       return block
       

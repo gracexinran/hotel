@@ -1,6 +1,6 @@
 require_relative "test_helper"
 
-ROOM_NUM = 20
+ROOM_NUM_TOTAL = 20
 ROOM_RATE = 200
 
 describe "HotelSystem class" do
@@ -30,7 +30,7 @@ describe "HotelSystem class" do
     end
     
     it "contains 20 rooms in total" do 
-      expect(@hotel_system.rooms.length).must_equal ROOM_NUM
+      expect(@hotel_system.rooms.length).must_equal ROOM_NUM_TOTAL
     end
   end
   
@@ -167,7 +167,7 @@ describe "HotelSystem class" do
       start_date = Date.today
       end_date = Date.today + 3
       18.times {@hotel_system.make_reservation(start_date, end_date)}
-      expect{@hotel_system.make_reservation(start_date, end_date)}.must_raise ArgumentError
+      expect{@hotel_system.available_room(start_date, end_date)}.must_raise StandardError
     end
     
   end
@@ -193,7 +193,7 @@ describe "HotelSystem class" do
       
       3.times {@hotel_system.make_reservation(start_date, end_date, 5, 180)}
       
-      expect{@hotel_system.make_reservation(start_date, end_date, 5, 180)}.must_raise ArgumentError
+      expect{@hotel_system.available_block(start_date, end_date, 5, 180)}.must_raise StandardError
       
     end
   end
