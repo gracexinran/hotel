@@ -6,6 +6,7 @@ ROOM_RATE = 200
 describe "HotelSystem class" do
   before do 
     @hotel_system = Hotel::HotelSystem.new
+    
     reservation_1 = @hotel_system.make_reservation(Date.today, Date.today + 3)
     reservation_2 = @hotel_system.make_reservation(Date.today, Date.today + 3)
     reservation_3 = @hotel_system.make_reservation(Date.today + 5, Date.today + 6)
@@ -67,6 +68,28 @@ describe "HotelSystem class" do
       expect(cost_per_night_per_room).must_be :<, ROOM_RATE
     end
     
+    it "changes the status of rooms to unavailable after making a noraml reservation" do
+      start_date = Date.today
+      end_date = Date.today + 3
+
+      room_num_for_reservation = 1
+
+      available_rooms = @hotel_system.available_rooms(start_date, end_date)
+
+      rooms = available_rooms.slice(0, room_num_for_reservation).dup
+      
+      rooms.each {
+        |room| expect(room.status(start_date, end_date)).must_equal true
+      }
+      
+      reservation = @hotel_system.make_reservation(start_date, end_date)
+      
+      reservation.rooms.each {
+        |room| expect(room.status(start_date, end_date)).must_equal false
+      }
+
+    end
+
     it "changes the status of all rooms in the block to unavailable after making the block reservation" do
       
       block_reservation.block.each do |room| 
@@ -135,7 +158,7 @@ describe "HotelSystem class" do
       list.each do |reservation|
         expect(reservation).must_be_instance_of Hotel::Reservation
       end
-      
+
     end
     
     it "returns nil if no reservation is found" do 
@@ -145,30 +168,36 @@ describe "HotelSystem class" do
     
   end
   
-  describe "available_room" do
-    it "returns the first availabe room" do
+  describe "available_rooms" do
+    it "returns all availabe rooms" do
       start_date = Date.today
       end_date = Date.today + 3
       
-      room_num_for_reservation = 1
-      rooms = @hotel_system.available_room(start_date, end_date).slice(0, room_num_for_reservation)
-      
-      expect(rooms).must_be_instance_of Array
-      
-      rooms.each {|room| expect(room.status(start_date, end_date)).must_equal true}
-      
-      reservation = @hotel_system.make_reservation(start_date, end_date)
-      
-      reservation.rooms.each {|room| expect(room.status(start_date, end_date)).must_equal false}
+      rooms_available_status = @hotel_system.rooms.select {
+        |room| room.status(start_date, end_date)
+      }
+
+      available_rooms = @hotel_system.available_rooms(start_date, end_date)
+
+      expect(available_rooms.length).must_equal rooms_available_status.length
+
+      available_rooms.each {
+        |room| expect(room.status(start_date, end_date)).must_equal true
+      }
       
     end
     
-    it "must raise exception if no available room is found" do 
-      start_date = Date.today
-      end_date = Date.today + 3
-      18.times {@hotel_system.make_reservation(start_date, end_date)}
-      expect{@hotel_system.available_room(start_date, end_date)}.must_raise StandardError
-    end
+    # it "must raise exception if no available room is found" do 
+    #   start_date = Date.today
+    #   end_date = Date.today + 3
+
+    #   18.times {
+    #     @hotel_system.make_reservation(start_date, end_date)
+    #   }
+    #   expect{
+    #     @hotel_system.make_reservation(start_date, end_date)
+    #   }.must_raise StandardError
+    # end
     
   end
   
@@ -191,9 +220,13 @@ describe "HotelSystem class" do
       start_date = Date.today
       end_date = Date.today + 3
       
-      3.times {@hotel_system.make_reservation(start_date, end_date, 5, 180)}
+      3.times {
+        @hotel_system.make_reservation(start_date, end_date, 5, 180)
+      }
       
-      expect{@hotel_system.available_block(start_date, end_date, 5, 180)}.must_raise StandardError
+      expect{
+        @hotel_system.make_reservation(start_date, end_date, 5, 180)
+      }.must_raise StandardError
       
     end
   end

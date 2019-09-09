@@ -33,13 +33,23 @@ module Hotel
       reservation_id = @reservations.length + 1
       
       if room_rate.nil?
-        rooms = available_room(start_date, end_date, room_num)
-        reservation = Hotel::Reservation.new(id: reservation_id, rooms: rooms, start_date: start_date, end_date: end_date)
         
-        reservation.connect_reservation(rooms)
+        raise ArgumentError.new("Please provide a valid number of rooms you want to book!") if room_num.nil? || room_num.class != Integer || room_num > 5 || room_num < 1
+        
+        rooms = available_rooms(start_date, end_date)
+        
+        raise StandardError.new("No available rooms now!") if rooms.length < room_num
+        
+        rooms_reserve = rooms.slice(0, room_num)
+        
+        reservation = Hotel::Reservation.new(id: reservation_id, rooms: rooms_reserve, start_date: start_date, end_date: end_date)
+        
+        reservation.connect_reservation(rooms_reserve)
         
       elsif room_rate < ROOM_RATE
+        
         block = available_block(start_date, end_date, room_num, room_rate)
+        
         reservation = Hotel::Reservation.new(id: reservation_id, block: block, start_date: start_date, end_date: end_date, room_rate: room_rate)
         
         reservation.connect_reservation(block)
@@ -75,19 +85,11 @@ module Hotel
       
     end
     
-    def available_room(start_date, end_date, room_num = 1, room_rate = nil)
-      
-      raise ArgumentError.new("Please provide a valid number of rooms you want to book!") if room_num.nil? || room_num.class != Integer || room_num > 5 || room_num < 1
-      
-      rooms = []
-      @rooms.each do |room| 
-        rooms << room if room.status(start_date, end_date)
-        break if rooms.length == room_num
-      end
-      
-      raise StandardError.new("No available rooms now!") if rooms.length < room_num
-      return rooms
-      
+    def available_rooms(start_date, end_date)
+      rooms = @rooms.select {
+        |room| room.status(start_date, end_date)
+      }
+      return rooms      
     end
     
     def available_block(start_date, end_date, room_num, room_rate)
