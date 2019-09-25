@@ -2,6 +2,7 @@ module Hotel
   class HotelData 
     attr_reader :id
     def initialize(id:)
+      validate_num(id)
       @id = id
     end
 
