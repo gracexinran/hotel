@@ -1,13 +1,15 @@
 require "csv"
+require_relative "hotel_data"
 
 module Hotel
-  class Room
+  class Room < HotelData
     attr_reader :id, :reservations
     attr_accessor :rate
     
     CSV_ROOM = 'room.csv'
     ROOM_RATE = 200
     def initialize(id:, reservations: nil, rate: ROOM_RATE)
+      super(id: id)
       validate_num(id)
       @id = id
       @reservations = reservations || []
@@ -20,10 +22,6 @@ module Hotel
         csv << new_csv if !csv_array.include?(new_csv)
       end
       
-    end
-    
-    def validate_num(num)
-      raise ArgumentError.new('It cannot be blank and must be an integer greater than zero.') if num.nil? || num.class != Integer || num <= 0
     end
     
     def add_reservation(reservation)
