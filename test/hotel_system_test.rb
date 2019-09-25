@@ -187,17 +187,17 @@ describe "HotelSystem class" do
       
     end
     
-    # it "must raise exception if no available room is found" do 
-    #   start_date = Date.today
-    #   end_date = Date.today + 3
+    it "must raise exception if no available room is found" do 
+      start_date = Date.today
+      end_date = Date.today + 3
 
-    #   18.times {
-    #     @hotel_system.make_reservation(start_date, end_date)
-    #   }
-    #   expect{
-    #     @hotel_system.make_reservation(start_date, end_date)
-    #   }.must_raise StandardError
-    # end
+      18.times {
+        @hotel_system.make_reservation(start_date, end_date)
+      }
+      expect{
+        @hotel_system.make_reservation(start_date, end_date)
+      }.must_raise StandardError
+    end
     
   end
   
