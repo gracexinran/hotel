@@ -22,3 +22,10 @@
     B
 9. Bonus question once you've read Metz ch. 3: Which implementation is more loosely coupled?
     B
+
+
+Changes I made for Hotel project:
+1. I created a new class Hotel::HotelData which is the parent class of Hotel::Room and Hotel::Reservation.
+2. I moved the 'id' attribute and 'validate_num(num)' method to the parent class to reduce repeat.
+3. I created unit tests for the new created class Hotel::HotelData
+4. I added edge case test for 'make_reservation' method in Hotel::HotelSystem class for error handeling when running out of available rooms.
